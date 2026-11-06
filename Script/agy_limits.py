@@ -181,7 +181,7 @@ def render(q):
             pct = int(round((fr or 0) * 100))
             name = (b.get("displayName") or b.get("bucketId") or "?").replace(" Limit Remaining", " Limit")
             ts = b.get("resetTime")
-            out.append(f"{indent}{branch} {name:24} {fmt_frac(fr)}")
+            out.append(f"{indent}{branch} {name} {fmt_frac(fr)}")
             out.append(f"{indent}{cont}{fmt_date(ts)}")
             out.append(f"{indent}{cont}resets in {fmt_reset(ts)}")
     return "\n".join(out)
