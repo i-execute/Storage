@@ -212,7 +212,7 @@ def render_models(m):
     for name, mm in sorted((m.get("models") or {}).items()):
         q = mm.get("quotaInfo") or {}
         fr = q.get("remainingFraction")
-        disp = mm.get("displayName") or name
+        disp = (mm.get("displayName") or name).replace(" (Thinking)", " [TH]")
         lines.append((disp, fr, q.get("resetTime"), bool(mm.get("supportsImages"))))
     out.append(f"{paint(BOLD, 'Models:')} {len(lines)} available")
     for idx, (disp, fr, reset, img) in enumerate(lines):
