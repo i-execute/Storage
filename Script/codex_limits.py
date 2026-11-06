@@ -189,12 +189,16 @@ def format_delta(ts):
     return f"{m}m"
 
 
-def level(pct):
-    if pct >= 100:
+def remaining(window):
+    return 100 - used_pct(window)
+
+
+def level(rem):
+    if rem <= 0:
         return RED, "failed (quota-exhausted)"
-    if pct >= 90:
+    if rem <= 10:
         return RED, "degraded (quota-critical)"
-    if pct >= 70:
+    if rem <= 30:
         return YELLOW, "degraded (quota-low)"
     return GREEN, "active (running)"
 
@@ -224,7 +228,7 @@ def render(result):
                 items.append((f"{limit_id}:{kind}", bucket[kind]))
                 wins.append(bucket[kind])
 
-    worst = max((used_pct(w) for w in wins), default=0)
+    worst = min((remaining(w) for w in wins), default=100)
     color, state = level(worst)
 
     out = [
@@ -243,11 +247,11 @@ def render(result):
     out.append(line("Tasks:", f"{len(wins)} (limit: {len(wins)})"))
 
     if primary:
-        used = used_pct(primary)
-        left = max(0, 100 - used)
-        out.append(line("Memory:", f"{paint(pct_color(used), f'{used}%')} of "
+        rem = remaining(primary)
+        used = 100 - rem
+        out.append(line("Memory:", f"{paint(pct_color(used), f'{rem}%')} of "
                                     f"{format_window(primary.get('windowDurationMins'))} window"))
-        out.append(line("CPU:", f"{left}% left"))
+        out.append(line("CPU:", f"{used}% used"))
     else:
         out.append(line("Memory:", "n/a"))
         out.append(line("CPU:", "n/a"))
@@ -268,9 +272,10 @@ def render(result):
             out.append(f"{indent}{branch} {short(name)} n/a")
             continue
 
-        used = used_pct(win)
+        rem = remaining(win)
+        used = 100 - rem
         ts = win.get("resetsAt")
-        out.append(f"{indent}{branch} {short(name)} {paint(pct_color(used), f'{used}%')}")
+        out.append(f"{indent}{branch} {short(name)} {paint(pct_color(used), f'{rem}%')}")
         out.append(f"{indent}{cont}{format_date(ts)}")
         out.append(f"{indent}{cont}resets in {format_delta(ts)}")
 
