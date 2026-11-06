@@ -11,6 +11,7 @@ TOKEN_FILE = os.environ.get("AGY_TOKEN_FILE", os.path.expanduser("~/.gemini/anti
 CLIENT_ID = os.environ.get("AGY_CLIENT_ID")
 CLIENT_SECRET = os.environ.get("AGY_CLIENT_SECRET")
 API = "https://daily-cloudcode-pa.googleapis.com/v1internal:retrieveUserQuotaSummary"
+MODELS_API = "https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels"
 PROXY = os.environ.get("AGY_PROXY")  # e.g. socks5://host:port, empty = direct
 
 RESET = "\033[0m"
@@ -186,8 +187,50 @@ def render(q):
     return "\n".join(out)
 
 
+def fetch_models():
+    import urllib.request
+    at = fetch_token()
+    headers = {
+        "Authorization": f"Bearer {at}",
+        "Content-Type": "application/json",
+        "User-Agent": "antigravity-cli/1.4.12",
+        "x-goog-api-client": "antigravity-cli/1.4.12",
+    }
+    req = urllib.request.Request(MODELS_API, data=b"{}", headers=headers)
+    opener = build_opener()
+    try:
+        with opener.open(req, timeout=40) as r:
+            return json.loads(r.read().decode())
+    except urllib.error.HTTPError as e:
+        raise RuntimeError(f"HTTP {e.code}: {e.read().decode()[:300]}")
+
+
+def render_models(m):
+    out = []
+    indent = " " * 13
+    lines = []
+    for name, mm in sorted((m.get("models") or {}).items()):
+        q = mm.get("quotaInfo") or {}
+        fr = q.get("remainingFraction")
+        disp = mm.get("displayName") or name
+        lines.append((disp, fr, q.get("resetTime"), bool(mm.get("supportsImages"))))
+    out.append(f"{paint(BOLD, 'Models:')} {len(lines)} available")
+    for idx, (disp, fr, reset, img) in enumerate(lines):
+        last = idx == len(lines) - 1
+        branch = "└─" if last else "├─"
+        cont = "   " if last else "│  "
+        qtxt = "n/a" if fr is None else paint(color_for(100 - int(round(fr * 100))), f"{int(round(fr * 100))}%")
+        out.append(f"{indent}{branch} {name}  {qtxt}")
+        if reset:
+            out.append(f"{indent}{cont}{fmt_date(reset)} (quota reset)")
+    return "\n".join(out)
+
+
 def main():
     print(render(fetch_quota()))
+    if "--models" in sys.argv:
+        print()
+        print(render_models(fetch_models()))
 
 
 if __name__ == "__main__":
