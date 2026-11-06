@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Antigravity (Google AI Pro) quota viewer via daily-cloudcode-pa internal API."""
 
 import json
@@ -74,7 +73,6 @@ def build_opener():
 
 
 def parse_proxy(url):
-    # socks5://host:port -> (socks.SOCKS5, host, port)
     scheme, _, rest = url.partition("://")
     host, _, port = rest.rpartition(":")
     import socks
@@ -210,6 +208,8 @@ def render_models(m):
     indent = " " * 13
     lines = []
     for name, mm in sorted((m.get("models") or {}).items()):
+        if mm.get("isInternal") or name.startswith(("tab_", "chat_")):
+            continue
         q = mm.get("quotaInfo") or {}
         fr = q.get("remainingFraction")
         disp = (mm.get("displayName") or name).replace(" (Thinking)", " [TH]")
