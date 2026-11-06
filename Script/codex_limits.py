@@ -323,14 +323,16 @@ def fetch_models():
 
 def render_models(result):
     data = result.get("data") or []
-    out = [f"{paint(BOLD, 'Models:')} {len(data)} available"]
+    out = [
+        f"{paint(GREEN, '●')} {paint(BOLD, 'models.service')} - Codex models",
+        line("Loaded:", f"loaded ({len(data)} available)"),
+    ]
     indent = " " * 13
     for idx, m in enumerate(data):
         last = idx == len(data) - 1
         branch = "└─" if last else "├─"
         name = m.get("displayName") or m.get("id") or "?"
-        desc = m.get("description") or ""
-        out.append(f"{indent}{branch} {name}{paint(DIM, f'  {desc}') if desc else ''}")
+        out.append(f"{indent}{branch} {name}")
     return "\n".join(out)
 
 

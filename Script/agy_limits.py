@@ -214,7 +214,8 @@ def render_models(m):
         fr = q.get("remainingFraction")
         disp = (mm.get("displayName") or name).replace(" (Thinking)", " [TH]")
         lines.append((disp, fr, q.get("resetTime"), bool(mm.get("supportsImages"))))
-    out.append(f"{paint(BOLD, 'Models:')} {len(lines)} available")
+    out.append(f"{paint(GREEN, '●')} {paint(BOLD, 'models.service')} - Antigravity models")
+    out.append(line("Loaded:", f"loaded ({len(lines)} available)"))
     for idx, (disp, fr, reset, img) in enumerate(lines):
         last = idx == len(lines) - 1
         branch = "└─" if last else "├─"
