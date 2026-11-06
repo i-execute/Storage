@@ -220,7 +220,7 @@ def render_models(m):
         branch = "└─" if last else "├─"
         cont = "   " if last else "│  "
         qtxt = "n/a" if fr is None else paint(color_for(100 - int(round(fr * 100))), f"{int(round(fr * 100))}%")
-        out.append(f"{indent}{branch} {name}  {qtxt}")
+        out.append(f"{indent}{branch} {disp}  {qtxt}")
         if reset:
             out.append(f"{indent}{cont}{fmt_date(reset)} (quota reset)")
     return "\n".join(out)
