@@ -103,8 +103,8 @@ def fetch_quota():
 def fmt_frac(fr):
     if fr is None:
         return "n/a"
-    pct = int(round((1 - fr) * 100))
-    return paint(color_for(pct), f"{pct}%")
+    rem = int(round(fr * 100))
+    return paint(color_for(100 - rem), f"{rem}%")
 
 
 def color_for(pct):
