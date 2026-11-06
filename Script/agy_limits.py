@@ -222,13 +222,13 @@ def render_models(m):
         qtxt = "n/a" if fr is None else paint(color_for(100 - int(round(fr * 100))), f"{int(round(fr * 100))}%")
         out.append(f"{indent}{branch} {disp}  {qtxt}")
         if reset:
-            out.append(f"{indent}{cont}{fmt_date(reset)} (quota reset)")
+            out.append(f"{indent}{cont}{fmt_date(reset)}")
     return "\n".join(out)
 
 
 def main():
     print(render(fetch_quota()))
-    if "--models" in sys.argv:
+    if "--models" in sys.argv or "m" in [a for a in sys.argv[1:] if not a.startswith("-")]:
         print()
         print(render_models(fetch_models()))
 
