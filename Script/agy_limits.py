@@ -171,10 +171,9 @@ def render(q):
 
     indent = " " * 13
     for g in groups:
-        gname = (g.get("displayName") or "group")
-        out.append(f"{indent}{paint(BOLD, gname)}")
-        for idx, b in enumerate(g.get("buckets") or []):
-            last = idx == len((g.get("buckets") or [])) - 1
+        buckets = g.get("buckets") or []
+        for idx, b in enumerate(buckets):
+            last = idx == len(buckets) - 1
             branch = "└─" if last else "├─"
             cont = "   " if last else "│  "
             fr = b.get("remainingFraction")
