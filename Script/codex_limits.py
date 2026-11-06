@@ -282,8 +282,63 @@ def render(result):
     return "\n".join(out)
 
 
+def fetch_models():
+    sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    sock.settimeout(10)
+    sock.connect(SOCK)
+
+    key = base64.b64encode(os.urandom(16)).decode()
+    sock.sendall(
+        (
+            "GET / HTTP/1.1\r\n"
+            "Host: localhost\r\n"
+            "Upgrade: websocket\r\n"
+            "Connection: Upgrade\r\n"
+            f"Sec-WebSocket-Key: {key}\r\n"
+            "Sec-WebSocket-Version: 13\r\n"
+            "\r\n"
+        ).encode()
+    )
+
+    response = b""
+    while b"\r\n\r\n" not in response:
+        chunk = sock.recv(4096)
+        if not chunk:
+            raise RuntimeError("WebSocket handshake failed")
+        response += chunk
+
+    send_json(sock, {
+        "jsonrpc": "2.0", "id": 1, "method": "initialize",
+        "params": {"clientInfo": {"name": "codex-limits", "version": "2.0"}},
+    })
+    rpc_wait(sock, 1)
+
+    send_json(sock, {"jsonrpc": "2.0", "method": "initialized", "params": {}})
+    send_json(sock, {"jsonrpc": "2.0", "id": 2, "method": "model/list", "params": {}})
+    result = rpc_wait(sock, 2)
+
+    sock.close()
+    return result
+
+
+def render_models(result):
+    data = result.get("data") or []
+    out = [f"{paint(BOLD, 'Models:')} {len(data)} available"]
+    indent = " " * 13
+    for idx, m in enumerate(data):
+        last = idx == len(data) - 1
+        branch = "└─" if last else "├─"
+        name = m.get("displayName") or m.get("id") or "?"
+        desc = m.get("description") or ""
+        out.append(f"{indent}{branch} {name}{paint(DIM, f'  {desc}') if desc else ''}")
+    return "\n".join(out)
+
+
 def main():
     print(render(fetch_limits()))
+    if "--models" in sys.argv or "m" in [a for a in sys.argv[1:] if not a.startswith("-")]:
+        print()
+        print(render_models(fetch_models()))
 
 
 if __name__ == "__main__":
