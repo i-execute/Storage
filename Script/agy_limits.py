@@ -103,7 +103,7 @@ def fetch_quota():
 def fmt_frac(fr):
     if fr is None:
         return "n/a"
-    pct = int(round(fr * 100))
+    pct = int(round((1 - fr) * 100))
     return paint(color_for(pct), f"{pct}%")
 
 
@@ -153,7 +153,7 @@ def render(q):
         color, state = GREEN, "active (running)"
 
     out = [
-        f"{paint(color, '●')} {paint(BOLD, 'antigravity-quota.service')} - Google AI Pro usage",
+        f"{paint(color, '●')} {paint(BOLD, 'antigravity.service')} - Google AI Pro usage",
         line("Loaded:", "loaded (plan: Google AI Pro)"),
         line("Active:", paint(color, state)),
     ]
@@ -163,15 +163,15 @@ def render(q):
     indent = " " * 13
     for g in groups:
         gname = (g.get("displayName") or "group")
-        models = (g.get("description") or "").replace("Models within this group: ", "")
-        out.append(f"{indent}{paint(BOLD, gname)}{paint(DIM, f'  ({models})') if models else ''}")
+        out.append(f"{indent}{paint(BOLD, gname)}")
         for idx, b in enumerate(g.get("buckets") or []):
             last = idx == len((g.get("buckets") or [])) - 1
             branch = "└─" if last else "├─"
             cont = "   " if last else "│  "
             fr = b.get("remainingFraction")
             pct = int(round((fr or 0) * 100))
-            out.append(f"{indent}{branch} {(b.get('displayName') or b.get('bucketId') or '?'):24} {fmt_frac(fr)}")
+            name = (b.get("displayName") or b.get("bucketId") or "?").replace(" Limit Remaining", " Limit")
+            out.append(f"{indent}{branch} {name:24} {fmt_frac(fr)}")
             out.append(f"{indent}{cont}resets in {fmt_reset(b.get('resetTime'))}")
     return "\n".join(out)
 
